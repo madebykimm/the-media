@@ -1,0 +1,40 @@
+{
+  "name": "violet-visual",
+  "type": "module",
+  "version": "0.0.1",
+  "engines": {
+    "node": ">=22.23.4"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "db:migrate": "node scripts/migrate.js",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/cloudflare": "^14.4.9",
+    "@astrojs/react": "^7.1.9",
+    "@libsql/client": "^0.18.0",
+    "@tailwindcss/vite": "^4.3.5",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/better-sqlite3": "^9.6.0",
+    "@types/node": "^26.6.6",
+    "@types/pg": "^8.23.1",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@types/video.js": "^7.3.58",
+    "astro": "^7.4.13",
+    "bcryptjs": "^3.0.3",
+    "better-sqlite3": "^13.2.0",
+    "jose": "^6.2.18",
+    "lucide-react": "^1.76.0",
+    "pg": "^8.23.1",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "tailwindcss": "^4.3.5",
+    "video.js": "^8.24.2",
+    "videojs-contrib-ads": "^7.5.2",
+    "videojs-ima": "^2.6.0"
+  }
+}

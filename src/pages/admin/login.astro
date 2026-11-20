@@ -1,0 +1,164 @@
+---
+import '../../styles/global.css';
+
+const cookie = Astro.cookies.get('themedia_session');
+if (cookie?.value) {
+  return Astro.redirect('/admin');
+}
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CMS Login | THEMEDIA</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  </head>
+  <body class="bg-[#0b0d13] text-zinc-100 min-h-screen flex items-center justify-center p-4 antialiased selection:bg-red-600 selection:text-white">
+    <div class="w-full max-w-md bg-zinc-900/80 border border-zinc-800 rounded-2xl p-8 shadow-2xl backdrop-blur-sm">
+      <div class="flex flex-col items-center mb-8">
+        <a href="/" class="flex items-center gap-2.5 mb-3 group">
+          <div class="w-10 h-10 rounded bg-red-600 flex items-center justify-center font-black text-white text-xl shadow-lg shadow-red-900/50">
+            MP
+          </div>
+          <div class="flex flex-col">
+            <span class="font-extrabold text-xl tracking-tight text-white leading-none">THEMEDIA</span>
+            <span class="text-[10px] uppercase font-bold text-red-500 tracking-widest leading-tight">Admin Console</span>
+          </div>
+        </a>
+        <h1 class="text-lg font-bold text-white">Sign In to Publishing CMS</h1>
+        <p class="text-xs text-zinc-400 mt-1">Role-Based Access for Editors & Writers</p>
+      </div>
+
+      <div id="error-alert" class="hidden mb-4 p-3 rounded-lg bg-red-950/60 border border-red-800/60 text-red-300 text-xs"></div>
+
+      <form id="login-form" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-1.5" for="username">
+            Username or Email
+          </label>
+          <input
+            id="username"
+            name="username"
+            type="text"
+            required
+            value="superadmin"
+            class="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3.5 py-2.5 text-sm text-zinc-100 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 transition"
+          />
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400" for="password">
+              Password
+            </label>
+            <span class="text-[11px] text-zinc-500 font-mono">superadminpassword123</span>
+          </div>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            required
+            value="superadminpassword123"
+            class="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3.5 py-2.5 text-sm text-zinc-100 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 transition"
+          />
+        </div>
+
+        <button
+          type="submit"
+          id="submit-btn"
+          class="w-full mt-2 bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-lg text-sm transition flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-red-900/40"
+        >
+          Sign In
+        </button>
+      </form>
+
+      <!-- Quick Fill Credentials Pill -->
+      <div class="mt-4 pt-4 border-t border-zinc-800 flex flex-col gap-2">
+        <span class="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Quick Fill Username:</span>
+        <div class="flex flex-wrap gap-1.5">
+          <button
+            type="button"
+            class="role-pill px-2 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-[11px] text-red-400 font-mono transition"
+            data-username="superadmin"
+            data-pass="superadminpassword123"
+          >
+            superadmin
+          </button>
+          <button
+            type="button"
+            class="role-pill px-2 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-[11px] text-zinc-300 font-mono transition"
+            data-username="admin"
+            data-pass="adminpassword123"
+          >
+            admin
+          </button>
+          <button
+            type="button"
+            class="role-pill px-2 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-[11px] text-zinc-400 font-mono transition"
+            data-username="writer"
+            data-pass="writerpassword123"
+          >
+            writer
+          </button>
+        </div>
+      </div>
+
+      <div class="mt-6 pt-5 border-t border-zinc-800/80 text-center text-xs text-zinc-500">
+        <a href="/" class="hover:text-zinc-300 underline underline-offset-4">← Return to Public Media Portal</a>
+      </div>
+    </div>
+
+    <script>
+      const form = document.getElementById('login-form') as HTMLFormElement;
+      const errorAlert = document.getElementById('error-alert') as HTMLDivElement;
+      const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
+      const usernameInput = document.getElementById('username') as HTMLInputElement;
+      const passwordInput = document.getElementById('password') as HTMLInputElement;
+
+      document.querySelectorAll('.role-pill').forEach((pill) => {
+        pill.addEventListener('click', (e) => {
+          const btn = e.currentTarget as HTMLButtonElement;
+          usernameInput.value = btn.dataset.username || '';
+          passwordInput.value = btn.dataset.pass || '';
+        });
+      });
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        errorAlert.classList.add('hidden');
+        submitBtn.disabled = true;
+        submitBtn.innerText = 'Authenticating...';
+
+        const formData = new FormData(form);
+        const username = formData.get('username');
+        const password = formData.get('password');
+
+        try {
+          const res = await fetch('/api/admin/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password }),
+          });
+
+          const data = await res.json();
+
+          if (res.ok && data.success) {
+            window.location.href = '/admin';
+          } else {
+            errorAlert.textContent = data.error || 'Authentication failed.';
+            errorAlert.classList.remove('hidden');
+            submitBtn.disabled = false;
+            submitBtn.innerText = 'Sign In';
+          }
+        } catch {
+          errorAlert.textContent = 'Network or server error occurred.';
+          errorAlert.classList.remove('hidden');
+          submitBtn.disabled = false;
+          submitBtn.innerText = 'Sign In';
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,51 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import CardMedia from '../../components/CardMedia.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import { getAllCategories, getAllPosts } from '../../lib/models';
+
+const { slug } = Astro.params;
+const categories = await getAllCategories(Astro.locals);
+const allPosts = await getAllPosts(Astro.locals);
+
+const category = categories.find((c) => c.slug === slug) || {
+  id: 0,
+  name: slug ? slug.charAt(0).toUpperCase() + slug.slice(1) : 'Category',
+  slug: slug || '',
+};
+
+const categoryPosts = allPosts.filter((p) => p.category_slug === slug);
+const displayPosts = categoryPosts.length > 0 ? categoryPosts : allPosts;
+---
+
+<Layout title={`${category.name} Channel`} currentCategory={category.slug}>
+  <div class="mb-8 border-b border-zinc-800 pb-4">
+    <div class="flex items-center gap-3">
+      <span class="w-3.5 h-8 bg-red-600 rounded"></span>
+      <div>
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">{category.name}</h1>
+        <p class="text-xs text-zinc-400 mt-1">Curated video highlights and stories in {category.name}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <div class="lg:col-span-8 flex flex-col gap-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {displayPosts.map((post) => (
+          <CardMedia post={post} variant="grid" />
+        ))}
+      </div>
+
+      <div class="my-4">
+        <AdSlot slotKey="category_feed_banner" minHeight="120px" />
+      </div>
+    </div>
+
+    <aside class="lg:col-span-4 flex flex-col gap-6">
+      <div class="sticky top-20 flex flex-col gap-6">
+        <AdSlot slotKey="category_sidebar_sticky" minHeight="600px" />
+      </div>
+    </aside>
+  </div>
+</Layout>

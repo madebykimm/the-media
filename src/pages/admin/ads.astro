@@ -1,0 +1,116 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { INITIAL_AD_CONFIGS } from '../api/admin/ads';
+
+const configs = INITIAL_AD_CONFIGS;
+---
+
+<AdminLayout title="AdSlot Config Manager (D1 Store)" activeTab="ads">
+  <div class="space-y-6">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800 pb-4">
+      <div>
+        <h2 class="text-lg font-bold text-white">Dynamic Programmatic Ad Placements</h2>
+        <p class="text-xs text-zinc-400">
+          Manage Google Publisher Tags (GPT), VAST video tags, and custom network codes stored in D1 database
+        </p>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <span class="text-xs text-emerald-400 bg-emerald-950/80 border border-emerald-800/60 px-3 py-1 rounded-full font-mono">
+          D1 ad_configs Synced
+        </span>
+        <button
+          id="save-all-btn"
+          class="bg-red-600 hover:bg-red-700 text-white font-bold text-xs px-4 py-2 rounded-lg transition shadow-lg shadow-red-900/40 cursor-pointer"
+        >
+          Save All Changes
+        </button>
+      </div>
+    </div>
+
+    <!-- Active Inventory Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {configs.map((config) => (
+        <div class="bg-zinc-900/60 border border-zinc-800 rounded-xl p-5 flex flex-col justify-between space-y-4 hover:border-zinc-700 transition">
+          <div>
+            <div class="flex items-start justify-between gap-2 mb-2">
+              <div>
+                <span class="text-[10px] font-mono uppercase bg-zinc-800 text-red-400 px-2 py-0.5 rounded font-bold">
+                  {config.slot_key}
+                </span>
+                <h3 class="text-sm font-bold text-white mt-1.5">{config.name}</h3>
+              </div>
+              <span class="text-[11px] font-mono text-zinc-400 bg-zinc-950 px-2 py-1 rounded border border-zinc-800">
+                {config.dimensions}
+              </span>
+            </div>
+            <p class="text-xs text-zinc-400 leading-relaxed mb-3">{config.description}</p>
+
+            <div>
+              <label class="block text-[11px] font-semibold uppercase tracking-wider text-zinc-400 mb-1">
+                Ad Script / Tag Payload
+              </label>
+              <textarea
+                rows="4"
+                data-slot={config.slot_key}
+                class="ad-code-input w-full bg-zinc-950 border border-zinc-800 rounded-lg p-3 text-xs text-zinc-200 font-mono focus:outline-none focus:border-red-600"
+              >{config.ad_code}</textarea>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between pt-3 border-t border-zinc-800/80 text-xs">
+            <label class="flex items-center gap-2 cursor-pointer select-none">
+              <input type="checkbox" checked={config.is_active} class="text-red-600 focus:ring-red-600 rounded" />
+              <span class="text-zinc-300 font-medium">Slot Enabled</span>
+            </label>
+            <button
+              class="text-zinc-400 hover:text-white underline cursor-pointer"
+              onclick={`alert('Preview mode active for: ${config.slot_key}')`}
+            >
+              Test Tag
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+
+  <script>
+    const saveBtn = document.getElementById('save-all-btn') as HTMLButtonElement;
+    saveBtn.addEventListener('click', async () => {
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Saving to D1...';
+
+      const inputs = document.querySelectorAll('.ad-code-input') as NodeListOf<HTMLTextAreaElement>;
+      const updates: Record<string, string> = {};
+      inputs.forEach((input) => {
+        const slot = input.dataset.slot;
+        if (slot) updates[slot] = input.value;
+      });
+
+      try {
+        const res = await fetch('/api/admin/ads', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updates),
+        });
+
+        if (res.ok) {
+          saveBtn.textContent = 'Saved to D1!';
+          setTimeout(() => {
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Save All Changes';
+          }, 1500);
+        } else {
+          alert('Failed to save configs');
+          saveBtn.disabled = false;
+          saveBtn.textContent = 'Save All Changes';
+        }
+      } catch {
+        alert('Network error saving configs');
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save All Changes';
+      }
+    });
+  </script>
+</AdminLayout>

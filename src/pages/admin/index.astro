@@ -1,0 +1,99 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { getAllPosts } from '../../lib/models';
+
+const posts = await getAllPosts(Astro.locals);
+const totalViews = posts.reduce((acc, p) => acc + p.views_count, 0);
+---
+
+<AdminLayout title="CMS Dashboard Overview" activeTab="dashboard">
+  <!-- Metric Cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+    <div class="bg-zinc-900/60 border border-zinc-800 p-4 rounded-xl">
+      <p class="text-[11px] font-bold uppercase tracking-wider text-zinc-500">Total Posts</p>
+      <p class="text-2xl font-black text-white mt-1">{posts.length}</p>
+    </div>
+    <div class="bg-zinc-900/60 border border-zinc-800 p-4 rounded-xl">
+      <p class="text-[11px] font-bold uppercase tracking-wider text-zinc-500">Total Portal Views</p>
+      <p class="text-2xl font-black text-white mt-1">{totalViews.toLocaleString()}</p>
+    </div>
+    <div class="bg-zinc-900/60 border border-zinc-800 p-4 rounded-xl">
+      <p class="text-[11px] font-bold uppercase tracking-wider text-zinc-500">Active Ad Units</p>
+      <p class="text-2xl font-black text-emerald-400 mt-1">6 units</p>
+    </div>
+    <div class="bg-zinc-900/60 border border-zinc-800 p-4 rounded-xl">
+      <p class="text-[11px] font-bold uppercase tracking-wider text-zinc-500">Asset Storage</p>
+      <p class="text-2xl font-black text-white mt-1">Cloudflare R2</p>
+    </div>
+  </div>
+
+  <!-- Quick Shortcut Navigation -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <a href="/admin/posts" class="p-4 bg-zinc-900/40 hover:bg-zinc-900 border border-zinc-800 rounded-xl transition group">
+      <div class="flex items-center justify-between mb-2">
+        <h4 class="text-sm font-bold text-white group-hover:text-red-400 transition">Posts & Video Menu →</h4>
+        <span class="text-xs bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded font-mono">{posts.length}</span>
+      </div>
+      <p class="text-xs text-zinc-400">Manage, edit, publish editorial articles and video streams.</p>
+    </a>
+
+    <a href="/admin/uploader" class="p-4 bg-zinc-900/40 hover:bg-zinc-900 border border-zinc-800 rounded-xl transition group">
+      <div class="flex items-center justify-between mb-2">
+        <h4 class="text-sm font-bold text-white group-hover:text-red-400 transition">Direct R2 Uploader →</h4>
+        <span class="text-xs bg-emerald-950 text-emerald-400 border border-emerald-800/60 px-2 py-0.5 rounded">R2 Ready</span>
+      </div>
+      <p class="text-xs text-zinc-400">Direct drag-and-drop video and image asset ingest with zero egress cost.</p>
+    </a>
+
+    <a href="/admin/ads" class="p-4 bg-zinc-900/40 hover:bg-zinc-900 border border-zinc-800 rounded-xl transition group">
+      <div class="flex items-center justify-between mb-2">
+        <h4 class="text-sm font-bold text-white group-hover:text-red-400 transition">AdSlot Config (D1) →</h4>
+        <span class="text-xs bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded font-mono">D1 Store</span>
+      </div>
+      <p class="text-xs text-zinc-400">Configure programmatic tags, VAST URLs, and viewability timers without code deploy.</p>
+    </a>
+  </div>
+
+  <!-- Recent Content -->
+  <div class="bg-zinc-900/60 border border-zinc-800 rounded-xl overflow-hidden">
+    <div class="px-5 py-4 border-b border-zinc-800 flex items-center justify-between">
+      <h3 class="text-sm font-bold text-white">Recent Content Items</h3>
+      <a href="/admin/posts" class="text-xs text-red-400 hover:text-red-300">View All Items →</a>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs">
+        <thead class="bg-zinc-950/80 text-zinc-400 uppercase tracking-wider font-semibold border-b border-zinc-800">
+          <tr>
+            <th class="py-3 px-4">Content Title</th>
+            <th class="py-3 px-4">Type</th>
+            <th class="py-3 px-4">Category</th>
+            <th class="py-3 px-4">Views</th>
+            <th class="py-3 px-4 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-zinc-800 text-zinc-300">
+          {posts.slice(0, 5).map((p) => (
+            <tr class="hover:bg-zinc-800/30 transition">
+              <td class="py-3 px-4 font-medium text-white flex items-center gap-3">
+                <img src={p.thumbnail_url} alt="" class="w-10 h-6 object-cover rounded bg-zinc-800" />
+                <span class="truncate max-w-sm">{p.title}</span>
+              </td>
+              <td class="py-3 px-4">
+                <span class={`uppercase font-bold text-[10px] px-2 py-0.5 rounded ${
+                  p.post_type === 'video' ? 'bg-red-950/60 text-red-400 border border-red-800/50' : 'bg-blue-950/60 text-blue-400 border border-blue-800/50'
+                }`}>
+                  {p.post_type}
+                </span>
+              </td>
+              <td class="py-3 px-4 text-zinc-400">{p.category_name}</td>
+              <td class="py-3 px-4 font-mono text-zinc-400">{p.views_count.toLocaleString()}</td>
+              <td class="py-3 px-4 text-right space-x-2">
+                <a href={p.post_type === 'video' ? `/watch/${p.slug}` : `/read/${p.slug}`} target="_blank" class="text-zinc-400 hover:text-white">View</a>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</AdminLayout>

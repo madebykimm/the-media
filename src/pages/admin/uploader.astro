@@ -1,0 +1,200 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+---
+
+<AdminLayout title="Direct R2 Media Uploader" activeTab="uploader">
+  <div class="space-y-6">
+    <div class="flex items-center justify-between border-b border-zinc-800 pb-4">
+      <div>
+        <h2 class="text-lg font-bold text-white">Direct-to-R2 Media Pipeline</h2>
+        <p class="text-xs text-zinc-400">Zero egress bandwidth cost image & video storage (Cloudflare R2 Bucket)</p>
+      </div>
+      <span class="text-xs px-2.5 py-1 bg-emerald-950/80 border border-emerald-800/60 text-emerald-400 rounded-full font-mono">
+        R2_MEDIA Active
+      </span>
+    </div>
+
+    <!-- Drag & Drop Zone -->
+    <div
+      id="drop-zone"
+      class="border-2 border-dashed border-zinc-700 hover:border-red-500 rounded-2xl p-10 flex flex-col items-center justify-center text-center bg-zinc-900/30 hover:bg-zinc-900/60 transition cursor-pointer group"
+    >
+      <div class="w-14 h-14 rounded-full bg-zinc-800 group-hover:bg-red-600/20 text-zinc-400 group-hover:text-red-400 flex items-center justify-center mb-4 transition">
+        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+        </svg>
+      </div>
+
+      <h3 class="text-sm font-bold text-white mb-1">Click to browse or drop media files here</h3>
+      <p class="text-xs text-zinc-400 max-w-sm mb-4">
+        Supports WebP, AVIF, PNG, JPG (up to 10MB) and MP4, WebM, HLS packages (up to 250MB)
+      </p>
+
+      <div class="flex items-center gap-3">
+        <select id="folder-select" class="bg-zinc-950 border border-zinc-700 text-xs text-zinc-300 rounded px-2.5 py-1.5 focus:outline-none" onclick="event.stopPropagation()">
+          <option value="thumbnails">Folder: /thumbnails</option>
+          <option value="articles">Folder: /articles</option>
+          <option value="videos">Folder: /videos</option>
+        </select>
+        <button type="button" class="bg-red-600 text-white text-xs font-bold px-4 py-1.5 rounded-lg group-hover:bg-red-700 transition">
+          Select Files
+        </button>
+      </div>
+
+      <input id="file-input" type="file" multiple class="hidden" accept="image/*,video/*" />
+    </div>
+
+    <!-- Upload Status List -->
+    <div class="bg-zinc-900/60 border border-zinc-800 rounded-xl overflow-hidden">
+      <div class="px-5 py-3 border-b border-zinc-800 flex items-center justify-between">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-zinc-300">Uploaded Media Assets</h3>
+        <span id="upload-counter" class="text-xs text-zinc-500">Ready</span>
+      </div>
+
+      <div id="media-list" class="divide-y divide-zinc-800 text-xs">
+        <!-- Mock initial uploaded media items -->
+        <div class="p-4 flex items-center justify-between hover:bg-zinc-800/30">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded bg-zinc-800 flex items-center justify-center text-zinc-400 overflow-hidden shrink-0">
+              <img src="https://images.unsplash.com/photo-1617788138017-80ad40651399?w=100&auto=format&fit=crop" class="w-full h-full object-cover" />
+            </div>
+            <div>
+              <p class="font-medium text-white">super-ev-hypercar.webp</p>
+              <p class="text-[11px] text-zinc-500 font-mono">thumbnails/super-ev-hypercar.webp • 184 KB</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button
+              class="copy-btn px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded text-[11px] font-mono transition"
+              data-url="https://images.unsplash.com/photo-1617788138017-80ad40651399?w=1280&auto=format&fit=crop"
+            >
+              Copy CDN URL
+            </button>
+          </div>
+        </div>
+
+        <div class="p-4 flex items-center justify-between hover:bg-zinc-800/30">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded bg-red-950/60 border border-red-800/50 flex items-center justify-center text-red-400 shrink-0">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            </div>
+            <div>
+              <p class="font-medium text-white">nurburgring-onboard-lap.mp4</p>
+              <p class="text-[11px] text-zinc-500 font-mono">videos/nurburgring-onboard-lap.mp4 • 48.2 MB</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button
+              class="copy-btn px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded text-[11px] font-mono transition"
+              data-url="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+            >
+              Copy CDN URL
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const dropZone = document.getElementById('drop-zone') as HTMLDivElement;
+    const fileInput = document.getElementById('file-input') as HTMLInputElement;
+    const folderSelect = document.getElementById('folder-select') as HTMLSelectElement;
+    const mediaList = document.getElementById('media-list') as HTMLDivElement;
+    const uploadCounter = document.getElementById('upload-counter') as HTMLSpanElement;
+
+    dropZone.addEventListener('click', () => fileInput.click());
+
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.classList.add('border-red-500', 'bg-zinc-900/60');
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.classList.remove('border-red-500', 'bg-zinc-900/60');
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('border-red-500', 'bg-zinc-900/60');
+      if (e.dataTransfer?.files?.length) {
+        handleFiles(e.dataTransfer.files);
+      }
+    });
+
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files?.length) {
+        handleFiles(fileInput.files);
+      }
+    });
+
+    async function handleFiles(files: FileList) {
+      uploadCounter.textContent = `Uploading ${files.length} file(s)...`;
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('folder', folderSelect.value);
+
+        try {
+          const res = await fetch('/api/admin/upload', {
+            method: 'POST',
+            body: formData,
+          });
+          const data = await res.json();
+
+          if (res.ok && data.success) {
+            appendMediaItem(data);
+          } else {
+            alert(`Upload error for ${file.name}: ${data.error}`);
+          }
+        } catch {
+          alert(`Network failure uploading ${file.name}`);
+        }
+      }
+
+      uploadCounter.textContent = 'Uploads completed';
+    }
+
+    function appendMediaItem(item: { fileName: string; key: string; url: string; size: number }) {
+      const div = document.createElement('div');
+      div.className = 'p-4 flex items-center justify-between hover:bg-zinc-800/30 transition';
+      div.innerHTML = `
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded bg-emerald-950/60 border border-emerald-800/50 flex items-center justify-center text-emerald-400 shrink-0 font-bold">
+            ✓
+          </div>
+          <div>
+            <p class="font-medium text-white">${item.fileName}</p>
+            <p class="text-[11px] text-zinc-500 font-mono">${item.key} • ${(item.size / 1024).toFixed(1)} KB</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button class="copy-btn px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded text-[11px] font-mono transition" data-url="${item.url}">
+            Copy CDN URL
+          </button>
+        </div>
+      `;
+      mediaList.prepend(div);
+      attachCopyListeners();
+    }
+
+    function attachCopyListeners() {
+      document.querySelectorAll('.copy-btn').forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+          const target = e.currentTarget as HTMLButtonElement;
+          const url = target.dataset.url;
+          if (url) {
+            navigator.clipboard.writeText(url);
+            const orig = target.textContent;
+            target.textContent = 'Copied!';
+            setTimeout(() => (target.textContent = orig), 1500);
+          }
+        });
+      });
+    }
+
+    attachCopyListeners();
+  </script>
+</AdminLayout>

@@ -1,0 +1,95 @@
+---
+import { getAllCategories } from '../lib/models';
+
+interface Props {
+  currentCategory?: string;
+}
+
+const { currentCategory = '' } = Astro.props;
+const categories = await getAllCategories(Astro.locals);
+---
+
+<header class="sticky top-0 z-50 w-full bg-[#0d0f14]/95 backdrop-blur-md border-b border-zinc-800/80">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
+    <!-- Brand / Logo -->
+    <div class="flex items-center gap-8">
+      <a href="/" class="flex items-center gap-2 group">
+        <div class="w-9 h-9 rounded bg-red-600 flex items-center justify-center font-black text-white text-lg tracking-tighter shadow-lg shadow-red-900/40 group-hover:scale-105 transition-transform">
+          MP
+        </div>
+        <div class="flex flex-col">
+          <span class="font-extrabold text-lg tracking-tight text-white leading-none">THEMEDIA</span>
+          <span class="text-[10px] uppercase font-bold text-red-500 tracking-widest leading-tight">PORTAL NOW</span>
+        </div>
+      </a>
+
+      <!-- Category Nav Desktop -->
+      <nav class="hidden md:flex items-center gap-1">
+        <a
+          href="/"
+          class={`px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-colors ${
+            !currentCategory ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:text-white hover:bg-zinc-800/50'
+          }`}
+        >
+          All
+        </a>
+        {categories.map((cat) => (
+          <a
+            href={`/category/${cat.slug}`}
+            class={`px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-colors ${
+              currentCategory === cat.slug
+                ? 'bg-red-600 text-white'
+                : 'text-zinc-400 hover:text-white hover:bg-zinc-800/50'
+            }`}
+          >
+            {cat.name}
+          </a>
+        ))}
+      </nav>
+    </div>
+
+    <!-- Actions Right -->
+    <div class="flex items-center gap-3">
+      <button
+        aria-label="Search"
+        class="p-2 text-zinc-400 hover:text-white bg-zinc-800/60 hover:bg-zinc-800 rounded-full transition"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35m1.35-5.65a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+      </button>
+
+      <a
+        href="/admin"
+        class="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold bg-zinc-800 text-zinc-200 hover:text-white hover:bg-zinc-700 px-3 py-1.5 rounded-md border border-zinc-700/60 transition"
+      >
+        <svg class="w-3.5 h-3.5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+        </svg>
+        CMS Portal
+      </a>
+    </div>
+  </div>
+
+  <!-- Mobile Horizontal Category Slider -->
+  <div class="flex md:hidden overflow-x-auto px-4 py-2 gap-2 border-t border-zinc-800/50 scrollbar-none">
+    <a
+      href="/"
+      class={`whitespace-nowrap px-3 py-1 rounded-full text-xs font-medium ${
+        !currentCategory ? 'bg-zinc-800 text-white' : 'text-zinc-400'
+      }`}
+    >
+      All
+    </a>
+    {categories.map((cat) => (
+      <a
+        href={`/category/${cat.slug}`}
+        class={`whitespace-nowrap px-3 py-1 rounded-full text-xs font-medium ${
+          currentCategory === cat.slug ? 'bg-red-600 text-white' : 'text-zinc-400'
+        }`}
+      >
+        {cat.name}
+      </a>
+    ))}
+  </div>
+</header>

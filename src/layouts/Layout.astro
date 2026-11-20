@@ -1,0 +1,63 @@
+---
+import Header from '../components/Header.astro';
+import AdSlot from '../components/AdSlot.astro';
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+  currentCategory?: string;
+}
+
+const {
+  title,
+  description = 'High-speed media and digital video publishing portal modeled on KGNow.',
+  currentCategory = '',
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title} | THEMEDIA</title>
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  </head>
+  <body class="min-h-screen flex flex-col bg-[#0b0d13] text-zinc-100 antialiased selection:bg-red-600 selection:text-white">
+    <Header currentCategory={currentCategory} />
+
+    <!-- Top Leaderboard Container (Explicit Reserved Size to avoid CLS) -->
+    <div class="max-w-7xl mx-auto w-full px-4 sm:px-6 pt-4 pb-2">
+      <AdSlot slotKey="top_leaderboard" minHeight="90px" className="max-w-[970px] mx-auto" />
+    </div>
+
+    <!-- Main Dynamic Content -->
+    <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 py-4">
+      <slot />
+    </main>
+
+    <!-- Bottom Sticky Anchor Ad -->
+    <div class="sticky bottom-0 z-40 w-full bg-zinc-950/90 border-t border-zinc-800 p-1 flex justify-center shadow-2xl">
+      <div class="relative w-full max-w-[728px] h-[50px] sm:h-[90px] flex items-center justify-center">
+        <AdSlot slotKey="bottom_anchor" minHeight="50px" className="h-full border-dashed" />
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-zinc-950 border-t border-zinc-900 py-8 px-4 sm:px-6 text-center text-xs text-zinc-500">
+      <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-2">
+          <span class="font-bold text-zinc-300">THEMEDIA PORTAL</span>
+          <span>© 2026. Built with Astro + Cloudflare Pages & D1.</span>
+        </div>
+        <div class="flex items-center gap-4 text-zinc-400">
+          <a href="#" class="hover:text-white">Privacy Policy</a>
+          <a href="#" class="hover:text-white">Terms of Service</a>
+          <a href="#" class="hover:text-white">Ad Specs & Guidelines</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

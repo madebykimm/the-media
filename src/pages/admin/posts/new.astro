@@ -1,0 +1,280 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { getAllCategories } from '../../../lib/models';
+
+const categories = await getAllCategories();
+---
+
+<AdminLayout title="Create New Post / Video" activeTab="posts">
+  <div class="max-w-4xl mx-auto space-y-6">
+    <div class="flex items-center justify-between border-b border-zinc-800 pb-4">
+      <div>
+        <h2 class="text-lg font-bold text-white">Publish New Content</h2>
+        <p class="text-xs text-zinc-400">Configure editorial metadata, media links, and programmatic SEO attributes</p>
+      </div>
+      <a href="/admin/posts" class="text-xs text-zinc-400 hover:text-white transition">← Back to Posts</a>
+    </div>
+
+    <div id="alert-box" class="hidden p-3 rounded-lg text-xs font-medium"></div>
+
+    <form id="post-form" class="space-y-6">
+      <!-- Post Type Toggle -->
+      <div class="bg-zinc-900/60 border border-zinc-800 rounded-xl p-4">
+        <label class="block text-xs font-semibold uppercase text-zinc-400 mb-2">Content Format</label>
+        <div class="grid grid-cols-2 gap-3 max-w-md">
+          <label class="flex items-center gap-2 p-3 bg-zinc-950 border border-zinc-800 rounded-lg cursor-pointer hover:border-red-600 transition">
+            <input type="radio" name="post_type" value="video" checked class="text-red-600 focus:ring-red-600" />
+            <div>
+              <div class="text-xs font-bold text-white">Video Stream Post</div>
+              <div class="text-[11px] text-zinc-400">Video player + short summary</div>
+            </div>
+          </label>
+          <label class="flex items-center gap-2 p-3 bg-zinc-950 border border-zinc-800 rounded-lg cursor-pointer hover:border-red-600 transition">
+            <input type="radio" name="post_type" value="article" class="text-red-600 focus:ring-red-600" />
+            <div>
+              <div class="text-xs font-bold text-white">Editorial Article</div>
+              <div class="text-[11px] text-zinc-400">Long-form body + in-content ads</div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <!-- Core Content Details -->
+      <div class="bg-zinc-900/60 border border-zinc-800 rounded-xl p-5 space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-zinc-300 mb-1">Headline / Title *</label>
+          <input
+            type="text"
+            required
+            id="title"
+            name="title"
+            placeholder="e.g. Breaking: Electric Prototype Breaks All-Time Nürburgring Record"
+            class="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3.5 py-2 text-sm text-zinc-100 focus:outline-none focus:border-red-600"
+          />
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-zinc-300 mb-1">Category *</label>
+            <select
+              name="category_id"
+              id="category_id"
+              class="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3.5 py-2 text-xs text-zinc-100 focus:outline-none focus:border-red-600"
+            >
+              {categories.map((c) => (
+                <option value={c.id}>{c.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-zinc-300 mb-1">Custom Slug (optional)</label>
+            <input
+              type="text"
+              id="slug"
+              name="slug"
+              placeholder="auto-generated-from-title"
+              class="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3.5 py-2 text-xs text-zinc-100 focus:outline-none focus:border-red-600"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-zinc-300 mb-1">Thumbnail / Poster Image URL *</label>
+          <div class="flex gap-2">
+            <input
+              type="url"
+              required
+              id="thumbnail_url"
+              name="thumbnail_url"
+              placeholder="https://images.unsplash.com/photo-..."
+              class="flex-1 bg-zinc-950 border border-zinc-800 rounded-lg px-3.5 py-2 text-xs text-zinc-100 focus:outline-none focus:border-red-600"
+            />
+            <a
+              href="/admin/uploader"
+              target="_blank"
+              class="px-3 py-2 bg-zinc-800 hover:bg-zinc-700 text-xs text-zinc-300 rounded-lg whitespace-nowrap transition"
+            >
+              Upload to R2 ↗
+            </a>
+          </div>
+        </div>
+
+        <div id="video-fields" class="space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="sm:col-span-2">
+              <label class="block text-xs font-semibold text-zinc-300 mb-1">Video Stream URL (.mp4 / .m3u8)</label>
+              <input
+                type="url"
+                id="video_url"
+                name="video_url"
+                placeholder="https://commondatastorage.googleapis.com/.../BigBuckBunny.mp4"
+                class="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3.5 py-2 text-xs text-zinc-100 focus:outline-none focus:border-red-600"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-zinc-300 mb-1">Duration (Seconds)</label>
+              <input
+                type="number"
+                id="video_duration"
+                name="video_duration"
+                placeholder="180"
+                class="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3.5 py-2 text-xs text-zinc-100 focus:outline-none focus:border-red-600"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-zinc-300 mb-1">Short Excerpt / Teaser *</label>
+          <textarea
+            rows="2"
+            id="excerpt"
+            name="excerpt"
+            required
+            placeholder="Brief summary displayed on homepage cards and social meta descriptions..."
+            class="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-3 text-xs text-zinc-100 focus:outline-none focus:border-red-600"
+          ></textarea>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-zinc-300 mb-1">Article Body / Full Content (HTML)</label>
+          <textarea
+            rows="6"
+            id="content_html"
+            name="content_html"
+            placeholder="<p>Full article paragraphs...</p>"
+            class="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-3 text-xs text-zinc-100 font-mono focus:outline-none focus:border-red-600"
+          ></textarea>
+        </div>
+
+        <div class="flex items-center gap-6 pt-2">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="is_featured" name="is_featured" class="w-4 h-4 rounded bg-zinc-950 border-zinc-800 text-red-600 focus:ring-red-600" />
+            <span class="text-xs text-zinc-300 font-medium">Spotlight / Featured on Homepage</span>
+          </label>
+
+          <div class="flex items-center gap-2">
+            <label class="text-xs text-zinc-400 font-semibold">Status:</label>
+            <select id="status" name="status" class="bg-zinc-950 border border-zinc-800 rounded px-2.5 py-1 text-xs text-zinc-200">
+              <option value="published">Published</option>
+              <option value="draft">Draft</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Footer -->
+      <div class="flex items-center justify-end gap-3">
+        <a href="/admin/posts" class="px-4 py-2 rounded-lg bg-zinc-800 text-xs text-zinc-300 hover:bg-zinc-700 transition">
+          Cancel
+        </a>
+        <button
+          type="button"
+          id="btn-draft"
+          class="px-4 py-2 rounded-lg bg-zinc-800 text-xs text-white hover:bg-zinc-700 transition"
+        >
+          Save as Draft
+        </button>
+        <button
+          type="submit"
+          id="btn-publish"
+          class="px-5 py-2 rounded-lg bg-red-600 text-xs font-bold text-white hover:bg-red-700 shadow-lg shadow-red-900/40 transition disabled:opacity-50"
+        >
+          Publish Content Live
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    const form = document.getElementById('post-form') as HTMLFormElement;
+    const alertBox = document.getElementById('alert-box') as HTMLDivElement;
+    const btnDraft = document.getElementById('btn-draft') as HTMLButtonElement;
+    const btnPublish = document.getElementById('btn-publish') as HTMLButtonElement;
+    const statusSelect = document.getElementById('status') as HTMLSelectElement;
+
+    function showAlert(msg: string, isError = false) {
+      alertBox.textContent = msg;
+      alertBox.className = `p-3 rounded-lg text-xs font-medium ${
+        isError ? 'bg-red-950/80 border border-red-800 text-red-300' : 'bg-emerald-950/80 border border-emerald-800 text-emerald-300'
+      }`;
+      alertBox.classList.remove('hidden');
+      alertBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    async function submitPost(statusOverride?: 'draft' | 'published') {
+      const formData = new FormData(form);
+      const postType = formData.get('post_type') as string;
+      const title = (formData.get('title') as string || '').trim();
+      const slug = (formData.get('slug') as string || '').trim();
+      const categoryId = Number(formData.get('category_id'));
+      const thumbnailUrl = (formData.get('thumbnail_url') as string || '').trim();
+      const videoUrl = (formData.get('video_url') as string || '').trim();
+      const videoDuration = Number(formData.get('video_duration')) || 0;
+      const excerpt = (formData.get('excerpt') as string || '').trim();
+      const contentHtml = (formData.get('content_html') as string || '').trim();
+      const isFeatured = (document.getElementById('is_featured') as HTMLInputElement).checked;
+      const status = statusOverride || statusSelect.value;
+
+      if (!title) {
+        showAlert('Headline/Title is required.', true);
+        return;
+      }
+      if (!thumbnailUrl) {
+        showAlert('Thumbnail URL is required.', true);
+        return;
+      }
+      if (!excerpt) {
+        showAlert('Short excerpt is required.', true);
+        return;
+      }
+
+      btnPublish.disabled = true;
+      btnDraft.disabled = true;
+
+      try {
+        const res = await fetch('/api/admin/posts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title,
+            slug,
+            post_type: postType,
+            category_id: categoryId,
+            thumbnail_url: thumbnailUrl,
+            video_url: videoUrl,
+            video_duration: videoDuration,
+            excerpt,
+            content_html: contentHtml,
+            is_featured: isFeatured,
+            status,
+          }),
+        });
+
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          throw new Error(data.error || 'Failed to save post');
+        }
+
+        showAlert(`Post created successfully! Redirecting...`, false);
+        setTimeout(() => {
+          window.location.href = '/admin/posts';
+        }, 800);
+      } catch (err: any) {
+        showAlert(err.message, true);
+        btnPublish.disabled = false;
+        btnDraft.disabled = false;
+      }
+    }
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      submitPost('published');
+    });
+
+    btnDraft.addEventListener('click', () => {
+      submitPost('draft');
+    });
+  </script>
+</AdminLayout>

@@ -1,0 +1,192 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { getAllPosts, formatDuration, formatViews } from '../../../lib/models';
+
+const posts = await getAllPosts();
+---
+
+<AdminLayout title="Posts & Video Menu" activeTab="posts">
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <h2 class="text-lg font-bold text-white">Content Library</h2>
+      <p class="text-xs text-zinc-400">Total {posts.length} editorial posts and video streams</p>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <div id="filter-buttons" class="flex rounded-lg bg-zinc-900 border border-zinc-800 p-1 text-xs">
+        <button data-filter="all" class="filter-btn px-3 py-1 rounded bg-zinc-800 text-white font-medium cursor-pointer">
+          All ({posts.length})
+        </button>
+        <button data-filter="video" class="filter-btn px-3 py-1 rounded text-zinc-400 hover:text-white cursor-pointer">
+          Videos ({posts.filter(p => p.post_type === 'video').length})
+        </button>
+        <button data-filter="article" class="filter-btn px-3 py-1 rounded text-zinc-400 hover:text-white cursor-pointer">
+          Articles ({posts.filter(p => p.post_type === 'article').length})
+        </button>
+      </div>
+
+      <a
+        href="/admin/posts/new"
+        class="bg-red-600 hover:bg-red-700 text-white font-bold text-xs px-3.5 py-2 rounded-lg transition inline-flex items-center gap-1 shadow-lg shadow-red-900/30"
+      >
+        + New Post / Video
+      </a>
+    </div>
+  </div>
+
+  <!-- Content Table -->
+  <div class="bg-zinc-900/60 border border-zinc-800 rounded-xl overflow-hidden shadow-xl">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs">
+        <thead class="bg-zinc-950/80 text-zinc-400 uppercase tracking-wider font-semibold border-b border-zinc-800">
+          <tr>
+            <th class="py-3 px-4">Title & Media</th>
+            <th class="py-3 px-4">Type</th>
+            <th class="py-3 px-4">Category</th>
+            <th class="py-3 px-4">Duration</th>
+            <th class="py-3 px-4">Status</th>
+            <th class="py-3 px-4">Views</th>
+            <th class="py-3 px-4 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="posts-table-body" class="divide-y divide-zinc-800 text-zinc-300">
+          {posts.map((post) => (
+            <tr class="post-row hover:bg-zinc-800/40 transition" data-type={post.post_type} id={`row-${post.id}`}>
+              <td class="py-3 px-4">
+                <div class="flex items-center gap-3 max-w-md">
+                  <div class="relative w-16 h-10 rounded overflow-hidden bg-zinc-800 shrink-0">
+                    <img src={post.thumbnail_url} alt="" class="w-full h-full object-cover" />
+                    {post.post_type === 'video' && (
+                      <span class="absolute inset-0 flex items-center justify-center bg-black/30">
+                        <svg class="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M8 5v14l11-7z" />
+                        </svg>
+                      </span>
+                    )}
+                  </div>
+                  <div class="flex flex-col min-w-0">
+                    <a
+                      href={`/admin/posts/${post.id}/edit`}
+                      class="text-white font-semibold truncate hover:text-red-400 transition"
+                    >
+                      {post.title}
+                    </a>
+                    <span class="text-[11px] text-zinc-500 truncate">
+                      /{post.post_type === 'video' ? 'watch' : 'read'}/{post.slug}
+                    </span>
+                  </div>
+                </div>
+              </td>
+              <td class="py-3 px-4">
+                <span class={`uppercase font-bold text-[10px] px-2 py-0.5 rounded ${
+                  post.post_type === 'video'
+                    ? 'bg-red-950/60 text-red-400 border border-red-800/50'
+                    : 'bg-blue-950/60 text-blue-400 border border-blue-800/50'
+                }`}>
+                  {post.post_type}
+                </span>
+              </td>
+              <td class="py-3 px-4 text-zinc-300 font-medium">{post.category_name}</td>
+              <td class="py-3 px-4 font-mono text-zinc-400">
+                {post.post_type === 'video' ? formatDuration(post.video_duration) : '—'}
+              </td>
+              <td class="py-3 px-4">
+                {post.status === 'published' ? (
+                  <span class="inline-flex items-center gap-1.5 text-[11px] text-emerald-400 font-medium">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Published
+                  </span>
+                ) : (
+                  <span class="inline-flex items-center gap-1.5 text-[11px] text-amber-400 font-medium">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span> Draft
+                  </span>
+                )}
+              </td>
+              <td class="py-3 px-4 font-mono text-zinc-300">{formatViews(post.views_count)}</td>
+              <td class="py-3 px-4 text-right space-x-1">
+                <a
+                  href={post.post_type === 'video' ? `/watch/${post.slug}` : `/read/${post.slug}`}
+                  target="_blank"
+                  class="text-zinc-400 hover:text-white px-2 py-1 rounded hover:bg-zinc-800 transition"
+                >
+                  View ↗
+                </a>
+                <a
+                  href={`/admin/posts/${post.id}/edit`}
+                  class="text-zinc-300 hover:text-white px-2.5 py-1 rounded bg-zinc-800 hover:bg-zinc-700 transition font-medium"
+                >
+                  Edit
+                </a>
+                <button
+                  type="button"
+                  data-delete-id={post.id}
+                  data-delete-title={post.title}
+                  class="delete-btn text-red-400 hover:text-red-300 px-2 py-1 rounded hover:bg-zinc-800 transition cursor-pointer"
+                >
+                  Delete
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    // Tab filters
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    const rows = document.querySelectorAll<HTMLTableRowElement>('.post-row');
+
+    filterBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const filter = btn.getAttribute('data-filter');
+        filterBtns.forEach((b) => {
+          b.className = 'filter-btn px-3 py-1 rounded text-zinc-400 hover:text-white cursor-pointer';
+        });
+        btn.className = 'filter-btn px-3 py-1 rounded bg-zinc-800 text-white font-medium cursor-pointer';
+
+        rows.forEach((row) => {
+          const type = row.getAttribute('data-type');
+          if (filter === 'all' || type === filter) {
+            row.style.display = '';
+          } else {
+            row.style.display = 'none';
+          }
+        });
+      });
+    });
+
+    // Delete actions
+    const deleteBtns = document.querySelectorAll('.delete-btn');
+    deleteBtns.forEach((btn) => {
+      btn.addEventListener('click', async (e) => {
+        const target = e.currentTarget as HTMLButtonElement;
+        const id = target.getAttribute('data-delete-id');
+        const title = target.getAttribute('data-delete-title') || 'this post';
+
+        if (!confirm(`Delete "${title}"? This cannot be undone.`)) {
+          return;
+        }
+
+        target.disabled = true;
+        try {
+          const res = await fetch(`/api/admin/posts/${id}`, {
+            method: 'DELETE',
+          });
+          const data = await res.json();
+          if (!res.ok || !data.success) {
+            throw new Error(data.error || 'Failed to delete');
+          }
+
+          const row = document.getElementById(`row-${id}`);
+          if (row) {
+            row.remove();
+          }
+        } catch (err: any) {
+          alert(`Delete error: ${err.message}`);
+          target.disabled = false;
+        }
+      });
+    });
+  </script>
+</AdminLayout>

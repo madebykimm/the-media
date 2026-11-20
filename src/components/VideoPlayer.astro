@@ -1,0 +1,128 @@
+---
+interface Props {
+  videoUrl: string;
+  posterUrl: string;
+  adTagUrl?: string;
+  playerId?: string;
+}
+
+const {
+  videoUrl,
+  posterUrl,
+  adTagUrl = 'https://pubads.g.doubleclick.net/gampad/ads?iu=/21775744923/external/single_ad_samples&sz=640x480&cust_params=sample_ct%3Dlinear&ciu_szs=300x250%2C728x90&gdfp_req=1&output=vast&unviewed_position_start=1&env=vp&impl=s&correlator=',
+  playerId = 'themedia-videojs-player',
+} = Astro.props;
+---
+
+<!-- Video.js & Google IMA Theme Stylesheets -->
+<link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/videojs-ima/2.1.0/videojs.ima.css" rel="stylesheet" />
+
+<div class="relative w-full aspect-video bg-black rounded-2xl overflow-hidden border border-zinc-800 shadow-2xl">
+  <!-- Video element -->
+  <video
+    id={playerId}
+    class="video-js vjs-big-play-centered vjs-theme-themedia w-full h-full"
+    controls
+    preload="auto"
+    poster={posterUrl}
+    playsinline
+    data-ad-tag={adTagUrl}
+    data-src={videoUrl}
+  >
+    <source src={videoUrl} type="video/mp4" />
+    <p class="vjs-no-js text-xs text-zinc-400 p-4">
+      To view this video please enable JavaScript, or upgrade to a modern web browser.
+    </p>
+  </video>
+</div>
+
+<style is:global>
+  /* Custom Dark Portal Theming for Video.js */
+  .video-js.vjs-theme-themedia {
+    width: 100% !important;
+    height: 100% !important;
+    background-color: #000;
+    font-family: inherit;
+  }
+  .video-js.vjs-theme-themedia .vjs-big-play-button {
+    background-color: rgba(220, 38, 38, 0.9) !important;
+    border: none !important;
+    border-radius: 9999px !important;
+    width: 68px !important;
+    height: 68px !important;
+    line-height: 68px !important;
+    margin-top: -34px !important;
+    margin-left: -34px !important;
+    box-shadow: 0 10px 25px rgba(220, 38, 38, 0.5) !important;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+  }
+  .video-js.vjs-theme-themedia:hover .vjs-big-play-button {
+    background-color: #dc2626 !important;
+    transform: scale(1.08);
+  }
+  .video-js.vjs-theme-themedia .vjs-control-bar {
+    background: linear-gradient(to top, rgba(0,0,0,0.9), transparent) !important;
+    height: 48px !important;
+  }
+  .video-js.vjs-theme-themedia .vjs-play-progress {
+    background-color: #dc2626 !important;
+  }
+  .video-js.vjs-theme-themedia .vjs-slider {
+    background-color: rgba(255, 255, 255, 0.25) !important;
+  }
+</style>
+
+<!-- Google IMA SDK Client Script Integration -->
+<script is:inline src="https://imasdk.googleapis.com/js/sdkloader/ima3.js"></script>
+<script is:inline src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
+<script is:inline src="https://cdnjs.cloudflare.com/ajax/libs/videojs-contrib-ads/6.9.0/videojs-contrib-ads.min.js"></script>
+<script is:inline src="https://cdnjs.cloudflare.com/ajax/libs/videojs-ima/2.1.0/videojs.ima.min.js"></script>
+
+<script is:inline>
+  document.addEventListener('DOMContentLoaded', function () {
+    const videoEl = document.querySelector('.vjs-theme-themedia');
+    if (!videoEl) return;
+
+    const adTag = videoEl.getAttribute('data-ad-tag');
+    const playerId = videoEl.id;
+
+    // @ts-ignore
+    if (typeof videojs !== 'undefined') {
+      // @ts-ignore
+      const player = videojs(playerId, {
+        controls: true,
+        autoplay: false,
+        preload: 'auto',
+        fluid: true,
+        playbackRates: [0.5, 1, 1.25, 1.5, 2],
+      });
+
+      // Initialize IMA VAST ads plugin if IMA SDK loaded
+      // @ts-ignore
+      if (typeof player.ima === 'function' && typeof google !== 'undefined' && google.ima) {
+        // @ts-ignore
+        player.ima({
+          id: playerId,
+          adTagUrl: adTag,
+          disableCustomPlaybackForIOS10Plus: true,
+          autoPlayAdBreaks: true,
+        });
+
+        // Initialize IMA on first user interaction or load
+        let imaInitialized = false;
+        function initIma() {
+          if (!imaInitialized) {
+            imaInitialized = true;
+            // @ts-ignore
+            player.ima.initializeAdDisplayContainer();
+            // @ts-ignore
+            player.ima.requestAds();
+          }
+        }
+
+        player.one('play', initIma);
+      }
+    }
+  });
+</script>

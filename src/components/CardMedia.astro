@@ -1,0 +1,125 @@
+---
+import { formatDuration, formatViews, type Post } from '../lib/models';
+
+interface Props {
+  post: Post;
+  variant?: 'grid' | 'compact' | 'horizontal';
+}
+
+const { post, variant = 'grid' } = Astro.props;
+const href = post.post_type === 'video' ? `/watch/${post.slug}` : `/read/${post.slug}`;
+---
+
+{variant === 'compact' && (
+  <a href={href} class="group flex gap-3 items-center hover:bg-zinc-800/40 p-2 rounded-lg transition">
+    <div class="relative w-28 h-18 shrink-0 rounded overflow-hidden bg-zinc-800">
+      <img
+        src={post.thumbnail_url}
+        alt={post.title}
+        loading="lazy"
+        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+      />
+      {post.post_type === 'video' && (
+        <span class="absolute bottom-1 right-1 bg-black/85 text-white text-[10px] font-mono px-1 rounded">
+          {formatDuration(post.video_duration)}
+        </span>
+      )}
+    </div>
+    <div class="flex flex-col min-w-0">
+      <span class="text-[10px] uppercase font-bold tracking-wider text-red-400 truncate">
+        {post.category_name}
+      </span>
+      <h4 class="text-xs font-semibold text-zinc-100 group-hover:text-red-400 line-clamp-2 transition-colors">
+        {post.title}
+      </h4>
+      <span class="text-[11px] text-zinc-400 mt-1">
+        {formatViews(post.views_count)} views
+      </span>
+    </div>
+  </a>
+)}
+
+{variant === 'horizontal' && (
+  <a href={href} class="group flex flex-col sm:flex-row gap-4 bg-zinc-900/40 hover:bg-zinc-800/50 p-3 rounded-xl border border-zinc-800/50 transition">
+    <div class="relative w-full sm:w-56 aspect-video shrink-0 rounded-lg overflow-hidden bg-zinc-800">
+      <img
+        src={post.thumbnail_url}
+        alt={post.title}
+        loading="lazy"
+        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+      />
+      {post.post_type === 'video' && (
+        <>
+          <div class="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/40 transition">
+            <div class="w-10 h-10 rounded-full bg-red-600/90 text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition">
+              <svg class="w-5 h-5 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+            </div>
+          </div>
+          <span class="absolute bottom-2 right-2 bg-black/85 text-white text-[11px] font-mono px-1.5 py-0.5 rounded">
+            {formatDuration(post.video_duration)}
+          </span>
+        </>
+      )}
+    </div>
+    <div class="flex flex-col justify-center">
+      <div class="flex items-center gap-2 mb-1.5">
+        <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-zinc-800 text-red-400">
+          {post.category_name}
+        </span>
+        <span class="text-xs text-zinc-500">•</span>
+        <span class="text-xs text-zinc-400">{formatViews(post.views_count)} views</span>
+      </div>
+      <h3 class="text-base font-bold text-white group-hover:text-red-400 transition-colors line-clamp-2">
+        {post.title}
+      </h3>
+      <p class="text-xs text-zinc-400 line-clamp-2 mt-2 leading-relaxed">
+        {post.excerpt}
+      </p>
+    </div>
+  </a>
+)}
+
+{variant === 'grid' && (
+  <a href={href} class="group flex flex-col bg-zinc-900/50 hover:bg-zinc-800/60 rounded-xl overflow-hidden border border-zinc-800/60 transition">
+    <div class="relative aspect-video w-full overflow-hidden bg-zinc-800">
+      <img
+        src={post.thumbnail_url}
+        alt={post.title}
+        loading="lazy"
+        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+      />
+      {post.post_type === 'video' ? (
+        <>
+          <div class="absolute inset-0 flex items-center justify-center bg-black/10 group-hover:bg-black/30 transition">
+            <div class="w-9 h-9 rounded-full bg-red-600/90 text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition">
+              <svg class="w-4 h-4 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+            </div>
+          </div>
+          <span class="absolute bottom-2 right-2 bg-black/85 text-white text-[10px] font-mono px-1.5 py-0.5 rounded">
+            {formatDuration(post.video_duration)}
+          </span>
+        </>
+      ) : (
+        <span class="absolute top-2 right-2 bg-zinc-900/80 text-zinc-300 text-[10px] uppercase font-semibold px-2 py-0.5 rounded">
+          Article
+        </span>
+      )}
+      <span class="absolute top-2 left-2 bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded">
+        {post.category_name}
+      </span>
+    </div>
+    <div class="p-3.5 flex flex-col flex-1 justify-between">
+      <h3 class="text-sm font-bold text-white group-hover:text-red-400 transition-colors line-clamp-2 leading-snug">
+        {post.title}
+      </h3>
+      <div class="flex items-center justify-between text-xs text-zinc-400 mt-3 pt-2 border-t border-zinc-800/60">
+        <span>{post.author_name}</span>
+        <span>{formatViews(post.views_count)} views</span>
+      </div>
+    </div>
+  </a>
+)}
